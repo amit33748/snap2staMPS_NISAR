@@ -1,0 +1,72 @@
+################### NISAR TOPSAR / SWEEPSAR CONFIGURATION FILE ####################
+###################################################################################
+[PROJECT_DEFINITION]
+PROJECTFOLDER = D:/NISAR_Chandigarh_Test
+GRAPHSFOLDER  = ./graphs
+
+###################################################################################
+[PROC_OPTIONS]
+# Y / N OPTIONS
+OVERWRITE = N
+SMARTHDD  = Y
+PLOTTING  = Y
+
+###################################################################################
+[PROC_PARAMETERS]
+# SENSOR : NISAR
+SENSOR       = NISAR
+# FREQUENCY : L (Default for surface deformation & subsidence) or S
+FREQUENCY    = L
+# POLARISATION : HH (default), VV, HV, VH
+POLARISATION = HH
+# MASTER ACQUISITION DATE (YYYYMMDD) or leave empty for AUTO selection
+MASTER       =
+# MASTER SELECTION METHOD : AUTO or MANUAL
+MASTERSEL    = AUTO
+# DIGITAL ELEVATION MODEL : Copernicus 30m Global DEM (Default), SRTM 1Sec HGT, or External DEM
+DEM_NAME     = Copernicus 30m Global DEM
+# Optional path to local external DEM GeoTIFF (used if DEM_NAME = External DEM)
+EXTDEM       =
+
+###################################################################################
+[AOI_DEFINITION]
+# AOI_MODE OPTIONS: BBOX, SHP, GeoJSON, KML, or WKT
+AOI_MODE = BBOX
+LONMIN   = 76.68
+LATMIN   = 30.65
+LONMAX   = 76.88
+LATMAX   = 30.82
+# Path to ESRI Shapefile or GeoJSON (used when AOI_MODE = SHP / GEOJSON)
+AOI_FILE = D:/NISAR_Project/aoi/study_area.shp
+
+###################################################################################
+[DOWNLOAD_SOURCE]
+# PROVIDER : ASF (NASA) or BHOONIDHI (ISRO)
+PROVIDER     = ASF
+autoDownload = Y
+
+###################################################################################
+[ASF_SEARCH]
+ASF_USER  = YOUR_EARTHDATA_USERNAME
+ASF_PASS  = YOUR_EARTHDATA_PASSWORD
+BEAM_MODE = RSLC
+TRACK     = 55
+START     = 2026-09-22
+END       = 2026-11-22
+
+###################################################################################
+[BHOONIDHI_API]
+BHOONIDHI_URL = https://bhoonidhi.nrsc.gov.in/bhoonidhi-api
+USERNAME      =
+PASSWORD      =
+
+###################################################################################
+[SNAP_GPT]
+# Folder containing bin/gpt or bin/gpt.exe
+SNAP_INSTALLATION_FOLDER = C:/Program Files/esa-snap
+SNAP_HOME_DIR            = C:/Users/Default/.snap
+
+###################################################################################
+[COMPUTING_RESOURCES]
+CPU   = 16
+CACHE = 32G

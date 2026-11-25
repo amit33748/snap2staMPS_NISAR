@@ -1,0 +1,145 @@
+<graph id="Graph">
+  <version>1.0</version>
+  <!-- ========================================================================= -->
+  <!-- SNAP 14.0 GPT InSAR Coregistration and Interferogram Graph for NISAR       -->
+  <!-- NISAR SweepSAR is continuous (no TOPS bursts), so ESD is omitted.        -->
+  <!-- Uses Copernicus 30m Global DEM for high-precision Back-Geocoding and     -->
+  <!-- Topographic Phase Removal with elevation & lat/lon coordinate bands.      -->
+  <!-- ========================================================================= -->
+
+  <!-- 1. Read Master SLC -->
+  <node id="Read">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <useAdvancedOptions>false</useAdvancedOptions>
+      <file>MASTER</file>
+      <copyMetadata>true</copyMetadata>
+    </parameters>
+  </node>
+
+  <!-- 2. Read Secondary / Slave SLC -->
+  <node id="Read(2)">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <useAdvancedOptions>false</useAdvancedOptions>
+      <file>SECONDARY</file>
+      <copyMetadata>true</copyMetadata>
+    </parameters>
+  </node>
+
+  <!-- 3. DEM-Assisted Coregistration (Copernicus 30m Global DEM) -->
+  <!-- Generic Orbit+DEM coregistration for continuous SweepSAR (NISAR RSLC) -->
+  <node id="DEM-Assisted-Coregistration">
+    <operator>DEM-Assisted-Coregistration</operator>
+    <sources>
+      <sourceProduct refid="Read"/>
+      <sourceProduct.1 refid="Read(2)"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <demName>Copernicus 30m Global DEM</demName>
+      <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
+      <externalDEMFile>EXTERNALDEM</externalDEMFile>
+      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+      <resamplingType>BILINEAR_INTERPOLATION</resamplingType>
+      <tileExtensionPercent>400</tileExtensionPercent>
+      <maskOutAreaWithoutElevation>false</maskOutAreaWithoutElevation>
+      <outputRangeAzimuthOffset>false</outputRangeAzimuthOffset>
+    </parameters>
+  </node>
+
+  <!-- 4. Interferogram Formation -->
+  <node id="Interferogram">
+    <operator>Interferogram</operator>
+    <sources>
+      <sourceProduct refid="DEM-Assisted-Coregistration"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <subtractFlatEarthPhase>true</subtractFlatEarthPhase>
+      <srpPolynomialDegree>5</srpPolynomialDegree>
+      <srpNumberPoints>501</srpNumberPoints>
+      <orbitDegree>3</orbitDegree>
+      <includeCoherence>false</includeCoherence>
+      <cohWinAz>2</cohWinAz>
+      <cohWinRg>10</cohWinRg>
+      <squarePixel>true</squarePixel>
+      <subtractTopographicPhase>false</subtractTopographicPhase>
+      <demName>Copernicus 30m Global DEM</demName>
+      <externalDEMFile>EXTERNALDEM</externalDEMFile>
+      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+      <externalDEMApplyEGM>true</externalDEMApplyEGM>
+      <tileExtensionPercent>100</tileExtensionPercent>
+      <outputElevation>false</outputElevation>
+      <outputLatLon>false</outputLatLon>
+    </parameters>
+  </node>
+
+  <!-- 5. Topographic Phase Removal (Essential for StaMPS PSI) -->
+  <node id="TopoPhaseRemoval">
+    <operator>TopoPhaseRemoval</operator>
+    <sources>
+      <sourceProduct refid="Interferogram"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <orbitDegree>3</orbitDegree>
+      <demName>Copernicus 30m Global DEM</demName>
+      <externalDEMFile>EXTERNALDEM</externalDEMFile>
+      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+      <tileExtensionPercent>100</tileExtensionPercent>
+      <outputTopoPhaseBand>true</outputTopoPhaseBand>
+      <outputElevationBand>true</outputElevationBand>
+      <outputLatLonBands>true</outputLatLonBands>
+    </parameters>
+  </node>
+
+  <!-- 6. Write Coregistered Stack (Required for StaMPS amplitude/intensity calibration) -->
+  <node id="Write(2)">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="DEM-Assisted-Coregistration"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>OUTPUTCOREGFOLDER/OUTPUTFILE.dim</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+
+  <!-- 7. Write Differential Interferogram (Topo-phase removed) -->
+  <node id="Write">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="TopoPhaseRemoval"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>OUTPUTIFGFOLDER/OUTPUTFILE.dim</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+
+  <!-- UI Presentation Coordinates -->
+  <applicationData id="Presentation">
+    <Description>NISAR Coregistration and Interferogram Formation (Continuous SweepSAR, Copernicus 30m Global DEM)</Description>
+    <node id="Read">
+      <displayPosition x="30.0" y="50.0"/>
+    </node>
+    <node id="Read(2)">
+      <displayPosition x="30.0" y="180.0"/>
+    </node>
+    <node id="DEM-Assisted-Coregistration">
+      <displayPosition x="190.0" y="115.0"/>
+    </node>
+    <node id="Write(2)">
+      <displayPosition x="390.0" y="50.0"/>
+    </node>
+    <node id="Interferogram">
+      <displayPosition x="390.0" y="180.0"/>
+    </node>
+    <node id="TopoPhaseRemoval">
+      <displayPosition x="570.0" y="180.0"/>
+    </node>
+    <node id="Write">
+      <displayPosition x="760.0" y="180.0"/>
+    </node>
+  </applicationData>
+</graph>

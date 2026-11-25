@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>snap2stamps_nisar Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" crossorigin="">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="wb-shell">
+    <!-- Top Masthead -->
+    <header class="wb-masthead animate-in">
+      <div class="wb-brand">
+        <div class="wb-mark" aria-hidden="true">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/>
+            <path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/>
+            <path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/>
+            <circle cx="12" cy="12" r="2"/>
+            <path d="m13.41 10.59 5.66-5.66"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="wb-title">snap2stamps_nisar Workbench</h1>
+          <p class="wb-subtitle">NISAR L-band RSLC to ESA SNAP coregistration and StaMPS Export (Windows, Linux, macOS)</p>
+        </div>
+      </div>
+      <div class="wb-meta-strip" id="masthead-chips">
+        <span class="wb-chip"><span class="wb-chip-label">Workspace</span> <span id="chip-workspace">Loading...</span></span>
+        <span class="wb-chip"><span class="wb-chip-label">Master</span> <span id="chip-master">Auto</span></span>
+        <span class="wb-chip"><span class="wb-chip-label">Track</span> <span id="chip-track">Any</span></span>
+        <span class="wb-chip"><span class="wb-chip-label">Pol</span> <span id="chip-pol">HH</span></span>
+      </div>
+    </header>
+
+    <!-- 6-Stage Readiness Ribbon -->
+    <section class="wb-ribbon animate-in" aria-label="Pipeline Workspace Progress" id="stage-ribbon"></section>
+
+    <!-- Primary Tab Navigation -->
+    <nav class="wb-tabs" role="tablist" aria-label="Workbench Views">
+      <button type="button" class="wb-tab is-active" role="tab" aria-selected="true" aria-controls="panel-setup" id="tab-setup" data-tab="setup">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/>
+          <line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/>
+          <line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/>
+          <line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/>
+        </svg>
+        <span>1. Setup &amp; Config</span>
+      </button>
+      <button type="button" class="wb-tab" role="tab" aria-selected="false" aria-controls="panel-run" id="tab-run" data-tab="run">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="6 3 20 12 6 21 6 3"/>
+        </svg>
+        <span>2. Run &amp; Logs</span>
+      </button>
+      <button type="button" class="wb-tab" role="tab" aria-selected="false" aria-controls="panel-inspect" id="tab-inspect" data-tab="inspect">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
+          <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/>
+          <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>
+        </svg>
+        <span>3. Inspect Outputs</span>
+      </button>
+    </nav>
+
+    <!-- Toast Feedback -->
+    <div id="toast-banner" class="wb-toast" role="status" aria-live="polite" hidden></div>
+
+    <!-- TAB 1: SETUP & CONFIG -->
+    <main id="panel-setup" class="wb-panel is-active" role="tabpanel" aria-labelledby="tab-setup">
+      <!-- Environment & Dependencies Readiness Accordion -->
+      <section class="wb-box animate-in">
+        <div class="wb-box-head">
+          <div>
+            <h2 class="wb-box-title">Environment &amp; Dependencies Check</h2>
+            <p class="wb-box-sub" id="doctor-summary">Checking Python virtual environment, packages, and ESA SNAP GPT...</p>
+          </div>
+          <div class="wb-actions-inline">
+            <button type="button" class="wb-btn wb-btn-secondary" id="btn-refresh-doctor">Re-check</button>
+            <button type="button" class="wb-btn wb-btn-secondary" id="btn-install-deps">Install / Verify Python Dependencies</button>
+            <button type="button" class="wb-btn wb-btn-ghost" id="btn-toggle-doctor" aria-expanded="false">Details</button>
+          </div>
+        </div>
+        <div id="doctor-drawer" class="wb-drawer" hidden>
+          <table class="wb-table">
+            <thead>
+              <tr><th>Component</th><th>State</th><th>Details</th></tr>
+            </thead>
+            <tbody id="doctor-rows"></tbody>
+          </table>
+          <div id="deps-console-wrap" class="wb-console-wrap" hidden>
+            <div class="wb-console-bar">
+              <span>Dependency Installer Output</span>
+              <span class="wb-mono" id="deps-status-pill">Ready</span>
+            </div>
+            <pre class="wb-console" id="deps-console"></pre>
+          </div>
+        </div>
+      </section>
+
+      <div id="example-notice" class="wb-notice" hidden>
+        No <code>bin/project_nisar.conf</code> file exists yet. Set your workspace folder, India study area box, and credentials below, then click <strong>Save Configuration File</strong>.
+      </div>
+
+      <!-- Two-Column Workspace: Left = India Map, Right = Config Form -->
+      <div class="wb-split-grid">
+        <section class="wb-box animate-in">
+          <div class="wb-section-head">
+            <div>
+              <h2 class="wb-section-title">India Study Area Map</h2>
+              <p class="wb-section-note">Switch open-source basemap on top right; click the square draw icon on the left to pick your AOI.</p>
+            </div>
+            <div class="wb-actions-inline">
+              <button type="button" class="wb-btn wb-btn-ghost" id="btn-india-view">India View</button>
+              <button type="button" class="wb-btn wb-btn-ghost" id="btn-fit-aoi">Zoom to AOI</button>
+            </div>
+          </div>
+          <div id="india-map" class="wb-map" aria-label="Interactive Open-Source Map of India"></div>
+          <p class="wb-caption" id="aoi-summary-caption">Configured Box: --</p>
+        </section>
+
+        <section class="wb-box animate-in">
+          <div class="wb-section-head">
+            <div>
+              <h2 class="wb-section-title">Configuration File Setup</h2>
+              <p class="wb-section-note">Writes cleanly to <code>bin/project_nisar.conf</code></p>
+            </div>
+          </div>
+
+          <form id="config-form" class="wb-form" novalidate>
+            <div class="wb-field">
+              <label for="cfg-project-folder">Project Output Folder (PROJECTFOLDER)</label>
+              <input id="cfg-project-folder" name="project_folder" type="text" required>
+              <span class="wb-help">Where downloaded .h5 scenes, subsets, interferograms, and <code>INSAR_&lt;MASTER&gt;</code> are stored.</span>
+            </div>
+
+            <div class="wb-row-2">
+              <div class="wb-field">
+                <label for="cfg-snap-folder">ESA SNAP Folder</label>
+                <input id="cfg-snap-folder" name="snap_folder" type="text">
+              </div>
+              <div class="wb-field">
+                <label for="cfg-snap-home">SNAP Home (.snap)</label>
+                <input id="cfg-snap-home" name="snap_home" type="text">
+              </div>
+            </div>
+
+            <div class="wb-subhead">Study Area Bounding Box (Degrees)</div>
+            <div class="wb-row-4">
+              <div class="wb-field">
+                <label for="cfg-lonmin">Lon Min (W)</label>
+                <input id="cfg-lonmin" name="lonmin" type="number" step="0.0001" required>
+              </div>
+              <div class="wb-field">
+                <label for="cfg-latmin">Lat Min (S)</label>
+                <input id="cfg-latmin" name="latmin" type="number" step="0.0001" required>
+              </div>
+              <div class="wb-field">
+                <label for="cfg-lonmax">Lon Max (E)</label>
+                <input id="cfg-lonmax" name="lonmax" type="number" step="0.0001" required>
+              </div>
+              <div class="wb-field">
+                <label for="cfg-latmax">Lat Max (N)</label>
+                <input id="cfg-latmax" name="latmax" type="number" step="0.0001" required>
+              </div>
+            </div>
+
+            <div class="wb-subhead">Catalog Search &amp; Radar Parameters</div>
+            <div class="wb-row-4">
+              <div class="wb-field">
+                <label for="cfg-provider">Source</label>
+                <select id="cfg-provider" name="provider">
+                  <option value="ASF">NASA ASF</option>
+                  <option value="BHOONIDHI">ISRO Bhoonidhi</option>
+                </select>
+              </div>
+              <div class="wb-field">
+                <label for="cfg-frequency">Band</label>
+                <select id="cfg-frequency" name="frequency">
+                  <option value="L">L-Band</option>
+                  <option value="S">S-Band</option>
+                </select>
+              </div>
+              <div class="wb-field">
+                <label for="cfg-pol">Polarisation</label>
+                <select id="cfg-pol" name="polarisation">
+                  <option value="HH">HH</option>
+                  <option value="VV">VV</option>
+                  <option value="HV">HV</option>
+                  <option value="VH">VH</option>
+                </select>
+              </div>
+              <div class="wb-field">
+                <label for="cfg-track">Orbit Track</label>
+                <input id="cfg-track" name="track" type="text" placeholder="e.g. 55">
+              </div>
+            </div>
+
+            <div class="wb-row-3">
+              <div class="wb-field">
+                <label for="cfg-start">Start Date</label>
+                <input id="cfg-start" name="start" type="text" placeholder="YYYY-MM-DD">
+              </div>
+              <div class="wb-field">
+                <label for="cfg-end">End Date</label>
+                <input id="cfg-end" name="end" type="text" placeholder="YYYY-MM-DD">
+              </div>
+              <div class="wb-field">
+                <label for="cfg-master">Master Date (blank = AUTO)</label>
+                <input id="cfg-master" name="master" type="text" placeholder="YYYYMMDD">
+              </div>
+            </div>
+
+            <div class="wb-row-4">
+              <div class="wb-field">
+                <label for="cfg-overwrite">Overwrite</label>
+                <select id="cfg-overwrite" name="overwrite">
+                  <option value="N">N (Skip done)</option>
+                  <option value="Y">Y (Re-run)</option>
+                </select>
+              </div>
+              <div class="wb-field">
+                <label for="cfg-cpu">CPU Cores</label>
+                <input id="cfg-cpu" name="cpu" type="number" min="1" max="128">
+              </div>
+              <div class="wb-field">
+                <label for="cfg-cache">SNAP Cache</label>
+                <input id="cfg-cache" name="cache" type="text" placeholder="32G">
+              </div>
+              <div class="wb-field">
+                <label for="cfg-dem">DEM Source</label>
+                <select id="cfg-dem" name="dem_name">
+                  <option value="Copernicus 30m Global DEM">Copernicus 30m Global DEM</option>
+                  <option value="SRTM 1Sec HGT">SRTM 1Sec HGT</option>
+                  <option value="External DEM">External DEM</option>
+                </select>
+              </div>
+            </div>
+
+            <details class="wb-details">
+              <summary>Catalog Login Credentials (NASA Earthdata ASF / ISRO Bhoonidhi)</summary>
+              <div class="wb-row-2 wb-details-body">
+                <div class="wb-field">
+                  <label for="cfg-asf-user">ASF Username</label>
+                  <input id="cfg-asf-user" name="asf_user" type="text" autocomplete="username">
+                </div>
+                <div class="wb-field">
+                  <label for="cfg-asf-pass" id="lbl-asf-pass">ASF Password</label>
+                  <input id="cfg-asf-pass" name="asf_pass" type="password" autocomplete="current-password">
+                </div>
+                <div class="wb-field">
+                  <label for="cfg-bh-user">Bhoonidhi Username</label>
+                  <input id="cfg-bh-user" name="bhoonidhi_user" type="text">
+                </div>
+                <div class="wb-field">
+                  <label for="cfg-bh-pass" id="lbl-bh-pass">Bhoonidhi Password</label>
+                  <input id="cfg-bh-pass" name="bhoonidhi_pass" type="password">
+                </div>
+              </div>
+            </details>
+
+            <div class="wb-form-footer">
+              <button type="submit" class="wb-btn wb-btn-primary" id="btn-save-config">Save Configuration File</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <!-- TAB 2: RUN & LOGS -->
+    <main id="panel-run" class="wb-panel" role="tabpanel" aria-labelledby="tab-run" hidden>
+      <section class="wb-box animate-in">
+        <div class="wb-section-head">
+          <div>
+            <h2 class="wb-section-title">Pipeline Step Runner</h2>
+            <p class="wb-section-note">Run one step at a time or execute Steps 0 through 3 (stops at StaMPS Export; no automatic PS extraction).</p>
+          </div>
+          <div class="wb-actions-inline">
+            <button type="button" class="wb-btn wb-btn-danger" id="btn-stop-job" disabled>Stop Active Run</button>
+            <button type="button" class="wb-btn wb-btn-primary" id="btn-run-all">Run All (Steps 0 to 3)</button>
+          </div>
+        </div>
+
+        <div class="wb-step-grid" id="step-buttons"></div>
+
+        <details class="wb-details wb-guide-details">
+          <summary>Plain-Language Step Guide (What Each Stage Does)</summary>
+          <table class="wb-table wb-details-body">
+            <thead><tr><th>Step</th><th>Description</th></tr></thead>
+            <tbody id="step-guide-rows"></tbody>
+          </table>
+        </details>
+      </section>
+
+      <section class="wb-box animate-in">
+        <div class="wb-section-head">
+          <div>
+            <h2 class="wb-section-title">Live Process Log</h2>
+            <p class="wb-section-note" id="run-status-note">Select a step above or open a saved log file to inspect pipeline output.</p>
+          </div>
+          <div class="wb-actions-inline">
+            <select id="log-source-select" class="wb-select-compact" aria-label="Log source">
+              <option value="__live__">Live Session Console</option>
+            </select>
+            <button type="button" class="wb-btn wb-btn-ghost" id="btn-copy-log">Copy Log</button>
+            <button type="button" class="wb-btn wb-btn-ghost" id="btn-clear-log">Clear</button>
+          </div>
+        </div>
+        <pre class="wb-console wb-console-tall" id="run-console">Click any step button above to run the pipeline and stream logs here.</pre>
+      </section>
+    </main>
+
+    <!-- TAB 3: INSPECT OUTPUTS -->
+    <main id="panel-inspect" class="wb-panel" role="tabpanel" aria-labelledby="tab-inspect" hidden>
+      <div id="inspect-empty" class="wb-notice" hidden>
+        Project output folder does not exist on disk yet. Set <code>PROJECTFOLDER</code> in <strong>Setup &amp; Config</strong> and run <strong>Download</strong> or <strong>Step 0</strong>.
+      </div>
+
+      <div id="inspect-content">
+        <div class="wb-split-grid">
+          <section class="wb-box animate-in">
+            <div class="wb-section-head">
+              <div>
+                <h2 class="wb-section-title">Baseline Geometry</h2>
+                <p class="wb-section-note">Temporal baseline vs. perpendicular baseline</p>
+              </div>
+              <button type="button" class="wb-btn wb-btn-ghost" id="btn-refresh-inspect">Refresh</button>
+            </div>
+            <img id="baseline-chart-img" class="wb-chart-img" alt="NISAR temporal and perpendicular baseline plot">
+          </section>
+
+          <section class="wb-box animate-in">
+            <div class="wb-section-head">
+              <div>
+                <h2 class="wb-section-title">Scene &amp; Baseline Ledger</h2>
+                <p class="wb-section-note" id="inspect-master-note">Master: Pending</p>
+              </div>
+            </div>
+            <div class="wb-table-scroll">
+              <table class="wb-table">
+                <thead>
+                  <tr><th>Date</th><th>Role</th><th>Bperp</th><th>Btemp</th><th>Mean Coh</th></tr>
+                </thead>
+                <tbody id="baseline-rows"></tbody>
+              </table>
+            </div>
+            <div class="wb-export-summary" id="stamps-export-summary"></div>
+          </section>
+        </div>
+
+        <section class="wb-box animate-in">
+          <div class="wb-section-head">
+            <div>
+              <h2 class="wb-section-title">Interferogram &amp; Coregistration Previews</h2>
+              <p class="wb-section-note">Quicklook PNGs generated from <code>ifg/*.dim</code></p>
+            </div>
+            <div class="wb-actions-inline">
+              <select id="preview-select" class="wb-select-compact" aria-label="Preview image"></select>
+              <button type="button" class="wb-btn wb-btn-secondary" id="btn-gen-quicklook">Generate Quicklook</button>
+            </div>
+          </div>
+          <div id="preview-stage" class="wb-preview-stage">
+            <p class="wb-caption" id="preview-empty-msg">No PNG quicklooks in <code>previews/</code> yet. Click <strong>Generate Quicklook</strong> after Step 2 completes.</p>
+            <img id="preview-image" class="wb-preview-img" alt="Interferogram phase quicklook" hidden>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js" crossorigin=""></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<graph id="Graph">
+  <version>1.0</version>
+  <!-- ========================================================================= -->
+  <!-- SNAP 14.0 GPT StaMPS Export Graph for NISAR PSI Processing                 -->
+  <!-- Exports Coregistered SLCs and Differential Interferograms into StaMPS     -->
+  <!-- format (diff0, geo, rslc folders) with psiFormat=true.                   -->
+  <!-- ========================================================================= -->
+
+  <!-- StampsExport Operator: Combines coregistered stack and topo-removed IFG -->
+  <node id="StampsExport">
+    <operator>StampsExport</operator>
+    <sources>
+      <sourceProduct refid="Read"/>
+      <sourceProduct.1 refid="Read(2)"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <targetFolder>OUTPUTFOLDER</targetFolder>
+      <psiFormat>true</psiFormat>
+    </parameters>
+  </node>
+
+  <!-- Read Coregistered DIMAP Product -->
+  <node id="Read">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <useAdvancedOptions>false</useAdvancedOptions>
+      <file>COREGFILE</file>
+      <copyMetadata>true</copyMetadata>
+    </parameters>
+  </node>
+
+  <!-- Read Topo-removed Interferogram DIMAP Product -->
+  <node id="Read(2)">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <useAdvancedOptions>false</useAdvancedOptions>
+      <file>IFGFILE</file>
+      <copyMetadata>true</copyMetadata>
+    </parameters>
+  </node>
+
+  <!-- UI Presentation Coordinates -->
+  <applicationData id="Presentation">
+    <Description>StaMPS PSI Export for NISAR</Description>
+    <node id="Read">
+      <displayPosition x="50.0" y="60.0"/>
+    </node>
+    <node id="Read(2)">
+      <displayPosition x="50.0" y="190.0"/>
+    </node>
+    <node id="StampsExport">
+      <displayPosition x="280.0" y="125.0"/>
+    </node>
+  </applicationData>
+</graph>

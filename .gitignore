@@ -1,0 +1,22 @@
+# Python caches & virtual environments
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Sensitive user credentials & local workspace config
+bin/project_nisar.conf
+
+# Runtime logs & temporary SNAP outputs
+logs/*.log
+graphs/nisar_subset.xml
+target.dim
+target.data/
+assets/
+
+# OS / IDE clutter
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
